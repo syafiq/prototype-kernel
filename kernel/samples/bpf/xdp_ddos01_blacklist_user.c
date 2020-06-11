@@ -45,7 +45,7 @@ static char ifname_buf[IF_NAMESIZE];
 static char *ifname = NULL;
 static int ifindex = -1;
 
-#define NR_MAPS 5
+#define NR_MAPS 7
 int maps_marked_for_export[MAX_MAPS] = { 0 };
 
 static const char* map_idx_to_export_filename(int idx)
@@ -68,6 +68,12 @@ static const char* map_idx_to_export_filename(int idx)
 		break;
 	case 4: /* map_fd[4]: port_blacklist_drop_count_udp */
 		file =   file_port_blacklist_count[DDOS_FILTER_UDP];
+		break;
+	case 5: /* map_fd[5]: ts1 */
+		file =	 ts1;
+		break;
+	case 6: /* map_fd[6]: ts2 */
+		file =	 ts2;
 		break;
 	default:
 		break;
