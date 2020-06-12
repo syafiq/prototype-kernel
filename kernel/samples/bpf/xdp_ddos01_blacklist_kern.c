@@ -72,7 +72,7 @@ struct bpf_map_def SEC("maps") port_blacklist_drop_count_udp = {
 struct bpf_map_def SEC("maps") ts1 = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size    = sizeof(u32),
-	.value_size  = sizeof(u64), /* Drop counter */
+	.value_size  = sizeof(u64), /* time */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
 };
@@ -81,7 +81,7 @@ struct bpf_map_def SEC("maps") ts1 = {
 struct bpf_map_def SEC("maps") ts2 = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size    = sizeof(u32),
-	.value_size  = sizeof(u64), /* Drop counter */
+	.value_size  = sizeof(u64), /* time */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
 };
@@ -238,6 +238,10 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	void *data     = (void *)(long)ctx->data;
 	struct iphdr *iph = data + l3_offset;
 	u64 *value;
+	/* ts1 */
+	u64 ts_val;
+	u64 t_now = 65;
+
 	u32 ip_src; /* type need to match map */
 
 	/* Hint: +1 is sizeof(struct iphdr) */
@@ -252,6 +256,8 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	bpf_debug("Valid IPv4 packet: raw saddr:0x%x\n", ip_src);
 
 	value = bpf_map_lookup_elem(&blacklist, &ip_src);
+	ts_val = bpf_map_update_elem(&ts1, &ip_src, &t_now, BPF_ANY);
+
 	if (value) {
 		/* Don't need __sync_fetch_and_add(); as percpu map */
 		*value += 1; /* Keep a counter for drop matches */

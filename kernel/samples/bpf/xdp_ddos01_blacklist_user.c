@@ -70,10 +70,10 @@ static const char* map_idx_to_export_filename(int idx)
 		file =   file_port_blacklist_count[DDOS_FILTER_UDP];
 		break;
 	case 5: /* map_fd[5]: ts1 */
-		file =	 ts1;
+		file =	 file_ts1;
 		break;
 	case 6: /* map_fd[6]: ts2 */
-		file =	 ts2;
+		file =	 file_ts2;
 		break;
 	default:
 		break;
