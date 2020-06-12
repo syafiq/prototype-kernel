@@ -68,6 +68,24 @@ struct bpf_map_def SEC("maps") port_blacklist_drop_count_udp = {
 	.max_entries = 65536,
 };
 
+/* ts1 */
+struct bpf_map_def SEC("maps") ts1 = {
+	.type        = BPF_MAP_TYPE_PERCPU_HASH,
+	.key_size    = sizeof(u32),
+	.value_size  = sizeof(u64), /* Drop counter */
+	.max_entries = 100000,
+	.map_flags   = BPF_F_NO_PREALLOC,
+};
+
+/* ts2 */
+struct bpf_map_def SEC("maps") ts2 = {
+	.type        = BPF_MAP_TYPE_PERCPU_HASH,
+	.key_size    = sizeof(u32),
+	.value_size  = sizeof(u64), /* Drop counter */
+	.max_entries = 100000,
+	.map_flags   = BPF_F_NO_PREALLOC,
+};
+
 static inline struct bpf_map_def *drop_count_by_fproto(int fproto) {
 
 	switch (fproto) {
