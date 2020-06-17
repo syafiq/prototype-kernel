@@ -86,6 +86,24 @@ struct bpf_map_def SEC("maps") ts2 = {
 	.map_flags   = BPF_F_NO_PREALLOC,
 };
 
+/* c */
+struct bpf_map_def SEC("maps") counter_c = {
+	.type        = BPF_MAP_TYPE_PERCPU_HASH,
+	.key_size    = sizeof(u32),
+	.value_size  = sizeof(u64), /* int */
+	.max_entries = 100000,
+	.map_flags   = BPF_F_NO_PREALLOC,
+};
+
+/* dc */
+struct bpf_map_def SEC("maps") diffcount_dc = {
+	.type        = BPF_MAP_TYPE_PERCPU_HASH,
+	.key_size    = sizeof(u32),
+	.value_size  = sizeof(u64), /* int */
+	.max_entries = 100000,
+	.map_flags   = BPF_F_NO_PREALLOC,
+};
+
 static inline struct bpf_map_def *drop_count_by_fproto(int fproto) {
 
 	switch (fproto) {

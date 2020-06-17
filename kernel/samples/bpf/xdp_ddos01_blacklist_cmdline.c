@@ -282,6 +282,9 @@ int main(int argc, char **argv)
 	int fd_port_blacklist;
 	int fd_port_blacklist_count;
 	int fd_ts1;
+	int fd_ts2;
+	int fd_c;
+	int fd_dc;
 	int longindex = 0;
 	bool do_list = false;
 	int opt;
@@ -372,9 +375,26 @@ int main(int argc, char **argv)
 		blacklist_list_all_ipv4(fd_blacklist);
 		close(fd_blacklist);
 
+		/*FIXME we should separate this */
+		printf("ts1 \n");
 		fd_ts1 = open_bpf_map(file_ts1);
 		blacklist_list_all_ipv4(fd_ts1);
 		close(fd_ts1);
+
+		printf("ts2 \n");
+		fd_ts2 = open_bpf_map(file_ts2);
+		blacklist_list_all_ipv4(fd_ts2);
+		close(fd_ts2);
+
+		printf("counter_c \n");
+		fd_c = open_bpf_map(file_c);
+		blacklist_list_all_ipv4(fd_c);
+		close(fd_c);
+
+		printf("diffcount_dc \n");
+		fd_dc = open_bpf_map(file_dc);
+		blacklist_list_all_ipv4(fd_dc);
+		close(fd_dc);
 
 		fd_port_blacklist = open_bpf_map(file_port_blacklist);
 		for (i = 0; i < DDOS_FILTER_MAX; i++)

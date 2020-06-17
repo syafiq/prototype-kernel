@@ -45,7 +45,7 @@ static char ifname_buf[IF_NAMESIZE];
 static char *ifname = NULL;
 static int ifindex = -1;
 
-#define NR_MAPS 7
+#define NR_MAPS 9
 int maps_marked_for_export[MAX_MAPS] = { 0 };
 
 static const char* map_idx_to_export_filename(int idx)
@@ -74,6 +74,12 @@ static const char* map_idx_to_export_filename(int idx)
 		break;
 	case 6: /* map_fd[6]: ts2 */
 		file =	 file_ts2;
+		break;
+	case 7: /* map_fd[7]: counter_c */
+		file =	 file_c;
+		break;
+	case 8: /* map_fd[8]: diffcount_dc */
+		file =	 file_dc;
 		break;
 	default:
 		break;
