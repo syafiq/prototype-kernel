@@ -71,7 +71,7 @@ struct bpf_map_def SEC("maps") port_blacklist_drop_count_udp = {
 /* ts1 */
 struct bpf_map_def SEC("maps") ts1 = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
-	.key_size    = sizeof(u32),
+	.key_size    = sizeof(u64),
 	.value_size  = sizeof(u64), /* time */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
@@ -80,7 +80,7 @@ struct bpf_map_def SEC("maps") ts1 = {
 /* ts2 */
 struct bpf_map_def SEC("maps") ts2 = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
-	.key_size    = sizeof(u32),
+	.key_size    = sizeof(u64),
 	.value_size  = sizeof(u64), /* time */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
@@ -89,7 +89,7 @@ struct bpf_map_def SEC("maps") ts2 = {
 /* c */
 struct bpf_map_def SEC("maps") counter_c = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
-	.key_size    = sizeof(u32),
+	.key_size    = sizeof(u64),
 	.value_size  = sizeof(u64), /* int */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
@@ -98,7 +98,7 @@ struct bpf_map_def SEC("maps") counter_c = {
 /* dc */
 struct bpf_map_def SEC("maps") diffcount_dc = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
-	.key_size    = sizeof(u32),
+	.key_size    = sizeof(u64),
 	.value_size  = sizeof(u64), /* int */
 	.max_entries = 100000,
 	.map_flags   = BPF_F_NO_PREALLOC,
