@@ -71,6 +71,11 @@ struct stats_record {
 	struct record xdp_action[XDP_ACTION_MAX];
 };
 
+typedef struct {
+        __u32 saddr;
+        __u32 daddr;
+} id_addr;
+
 static void usage(char *argv[])
 {
 	int i;
@@ -116,6 +121,27 @@ static __u64 get_key32_value64_percpu(int fd, __u32 key)
 	if ((bpf_map_lookup_elem(fd, &key, values)) != 0) {
 		fprintf(stderr,
 			"ERR: bpf_map_lookup_elem failed key:0x%X\n", key);
+		return 0;
+	}
+
+	/* Sum values from each CPU */
+	for (i = 0; i < nr_cpus; i++) {
+		sum += values[i];
+	}
+	return sum;
+}
+
+static __u64 get_key_srcdst_value64_percpu(int fd, id_addr key)
+{
+	/* For percpu maps, userspace gets a value per possible CPU */
+	unsigned int nr_cpus = bpf_num_possible_cpus();
+	__u64 values[nr_cpus];
+	__u64 sum = 0;
+	int i;
+
+	if ((bpf_map_lookup_elem(fd, &key, values)) != 0) {
+		fprintf(stderr,
+			"ERR: bpf_map_lookup_elem failed key:0x\n");
 		return 0;
 	}
 
@@ -208,6 +234,28 @@ static void blacklist_print_ipv4(__u32 ip, __u64 count)
 	printf("\n \"%s\" : %llu", ip_txt, count);
 }
 
+static void blacklist_print_srcdst(id_addr key, __u64 count)
+{
+	char ip_src_txt[INET_ADDRSTRLEN] = {0};
+	char ip_dst_txt[INET_ADDRSTRLEN] = {0};
+	__u32 ip_src = key.saddr;
+	__u32 ip_dst = key.daddr;
+
+	/* Convert IPv4 addresses from binary to text form */
+	if (!inet_ntop(AF_INET, &ip_src, ip_src_txt, sizeof(ip_src_txt))) {
+		fprintf(stderr,
+			"ERR: Cannot convert u32 IP:0x%X to IP-txt\n", ip_src);
+		exit(EXIT_FAIL_IP);
+	}
+	/* Convert IPv4 addresses from binary to text form */
+	if (!inet_ntop(AF_INET, &ip_dst, ip_dst_txt, sizeof(ip_dst_txt))) {
+		fprintf(stderr,
+			"ERR: Cannot convert u32 IP:0x%X to IP-txt\n", ip_dst);
+		exit(EXIT_FAIL_IP);
+	}
+	printf("\n \"%s,%s\" : %llu", ip_src_txt, ip_dst_txt, count);
+}
+
 static void blacklist_print_proto(int key, __u64 count)
 {
 	printf("\n\t\"%s\" : %llu", xdp_proto_filter_names[key], count);
@@ -244,6 +292,20 @@ static void blacklist_list_all_ipv4(int fd)
 		prev_key = &key;
 	}
 	printf("%s", key ? "," : "");
+}
+
+static void blacklist_list_all_srcdst(int fd)
+{
+	id_addr key, *prev_key = NULL;
+	__u64 value;
+
+	while (bpf_map_get_next_key(fd, prev_key, &key) == 0) {
+		printf("%s", key.saddr ? "," : "" );
+		value = get_key_srcdst_value64_percpu(fd, key);
+		blacklist_print_srcdst(key, value);
+		prev_key = &key;
+	}
+	printf("%s", key.saddr ? "," : "");
 }
 
 static void blacklist_list_all_ports(int portfd, int countfds[])
@@ -376,24 +438,20 @@ int main(int argc, char **argv)
 		close(fd_blacklist);
 
 		/*FIXME we should separate this */
-		printf("ts1 \n");
 		fd_ts1 = open_bpf_map(file_ts1);
-		blacklist_list_all_ipv4(fd_ts1);
+		blacklist_list_all_srcdst(fd_ts1);
 		close(fd_ts1);
 
-		printf("ts2 \n");
 		fd_ts2 = open_bpf_map(file_ts2);
-		blacklist_list_all_ipv4(fd_ts2);
+		blacklist_list_all_srcdst(fd_ts2);
 		close(fd_ts2);
 
-		printf("counter_c \n");
 		fd_c = open_bpf_map(file_c);
-		blacklist_list_all_ipv4(fd_c);
+		blacklist_list_all_srcdst(fd_c);
 		close(fd_c);
 
-		printf("diffcount_dc \n");
 		fd_dc = open_bpf_map(file_dc);
-		blacklist_list_all_ipv4(fd_dc);
+		blacklist_list_all_srcdst(fd_dc);
 		close(fd_dc);
 
 		fd_port_blacklist = open_bpf_map(file_port_blacklist);
