@@ -25,6 +25,11 @@ struct vlan_hdr {
 	__be16 h_vlan_encapsulated_proto;
 };
 
+typedef struct {
+	u32 saddr;
+	u32 daddr;
+} id_addr;
+
 struct bpf_map_def SEC("maps") blacklist = {
 	.type        = BPF_MAP_TYPE_PERCPU_HASH,
 	.key_size    = sizeof(u32),
@@ -257,8 +262,9 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	struct iphdr *iph = data + l3_offset;
 	u64 *value;
 	/* ts1 */
-	u64 ts_val;
+	u64 ts1_val;
 	u64 t_now = 65;
+	id_addr ida;
 
 	u32 ip_src; /* type need to match map */
 
@@ -269,12 +275,14 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	}
 	/* Extract key */
 	ip_src = iph->saddr;
+	ida.saddr = iph->saddr;
+	ida.daddr = iph->daddr;
 	//ip_src = ntohl(ip_src); // ntohl does not work for some reason!?!
 
 	bpf_debug("Valid IPv4 packet: raw saddr:0x%x\n", ip_src);
 
 	value = bpf_map_lookup_elem(&blacklist, &ip_src);
-	ts_val = bpf_map_update_elem(&ts1, &ip_src, &t_now, BPF_ANY);
+	ts1_val = bpf_map_update_elem(&ts1, &ida, &t_now, BPF_ANY);
 
 	if (value) {
 		/* Don't need __sync_fetch_and_add(); as percpu map */
