@@ -109,6 +109,15 @@ struct bpf_map_def SEC("maps") diffcount_dc = {
 	.map_flags   = BPF_F_NO_PREALLOC,
 };
 
+/* mark */
+struct bpf_map_def SEC("maps") mark = {
+	.type        = BPF_MAP_TYPE_PERCPU_HASH,
+	.key_size    = sizeof(u64),
+	.value_size  = sizeof(u64), /* int */
+	.max_entries = 100000,
+	.map_flags   = BPF_F_NO_PREALLOC,
+};
+
 static inline struct bpf_map_def *drop_count_by_fproto(int fproto) {
 
 	switch (fproto) {
@@ -262,8 +271,21 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	struct iphdr *iph = data + l3_offset;
 	u64 *value;
 	/* ts1 */
+	u64 *ts1_get;
+	u64 *ts2_get;
+	u64 *c_get;
+	u64 *dc_get;
 	u64 ts1_val;
-	u64 t_now = 65;
+	u64 ts2_val; 
+	u64 c_val;
+	u64 dc_val; 
+	u64 mark_val;
+	u64 one = 1;
+	u64 zero = 0;
+	u64 t_now;
+	u64 TT1 = 10;
+	//u64 TT2 = 20;
+	//u64 TF1 = 30;
 	id_addr ida;
 
 	u32 ip_src; /* type need to match map */
@@ -279,10 +301,42 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	ida.daddr = iph->daddr;
 	//ip_src = ntohl(ip_src); // ntohl does not work for some reason!?!
 
+	ts1_get = bpf_map_lookup_elem(&ts1, &ida);
+	ts2_get = bpf_map_lookup_elem(&ts2, &ida);
+	c_get = bpf_map_lookup_elem(&counter_c, &ida);
+	t_now = bpf_ktime_get_ns();
+
+	if (ts1_get && ts2_get && c_get) { //record found
+		if ((&t_now-ts2_get) > TT1) { // TT1
+			ts1_val = bpf_map_update_elem(&ts1, &ida, &t_now, BPF_EXIST);
+			c_val = bpf_map_update_elem(&counter_c, &ida, &zero, BPF_EXIST);
+			dc_val = bpf_map_update_elem(&diffcount_dc, &ida, &zero, BPF_EXIST);
+			mark_val = bpf_map_update_elem(&mark, &ida, &one, BPF_EXIST);
+		}
+	} else { //record not found
+		ts1_val = bpf_map_update_elem(&ts1, &ida, &t_now, BPF_ANY);
+		ts2_val = bpf_map_update_elem(&ts2, &ida, &t_now, BPF_ANY);
+		c_val = bpf_map_update_elem(&counter_c, &ida, &zero, BPF_ANY);
+		dc_val = bpf_map_update_elem(&diffcount_dc, &ida, &zero, BPF_ANY);
+		mark_val = bpf_map_update_elem(&mark, &ida, &zero, BPF_ANY);
+	}
+
+	c_get = bpf_map_lookup_elem(&counter_c, &ida);
+	dc_get = bpf_map_lookup_elem(&diffcount_dc, &ida);
+	__sync_fetch_and_add(&c_get, &one);
+	__sync_fetch_and_add(&dc_get, &one);
+	ts2_val = bpf_map_update_elem(&ts2, &ida, &t_now, BPF_EXIST);
+
+	//if ((*ts2_get-*ts1_get) > TT2) { // TT2
+	////	if ( > 40) { // TF1
+	//	return XDP_DROP;
+	//		// Send overload warning
+	////	}
+	//}
+
 	bpf_debug("Valid IPv4 packet: raw saddr:0x%x\n", ip_src);
 
 	value = bpf_map_lookup_elem(&blacklist, &ip_src);
-	ts1_val = bpf_map_update_elem(&ts1, &ida, &t_now, BPF_ANY);
 
 	if (value) {
 		/* Don't need __sync_fetch_and_add(); as percpu map */

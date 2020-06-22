@@ -30,6 +30,7 @@ static const char *file_ts1 = "/sys/fs/bpf/ddos_ts1";
 static const char *file_ts2 = "/sys/fs/bpf/ddos_ts2";
 static const char *file_c = "/sys/fs/bpf/ddos_c";
 static const char *file_dc = "/sys/fs/bpf/ddos_dc";
+static const char *file_mark = "/sys/fs/bpf/ddos_mark";
 
 static const char *file_port_blacklist = "/sys/fs/bpf/ddos_port_blacklist";
 static const char *file_port_blacklist_count[] = {

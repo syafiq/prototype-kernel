@@ -347,6 +347,7 @@ int main(int argc, char **argv)
 	int fd_ts2;
 	int fd_c;
 	int fd_dc;
+	int fd_mark;
 	int longindex = 0;
 	bool do_list = false;
 	int opt;
@@ -453,6 +454,10 @@ int main(int argc, char **argv)
 		fd_dc = open_bpf_map(file_dc);
 		blacklist_list_all_srcdst(fd_dc);
 		close(fd_dc);
+
+		fd_mark = open_bpf_map(file_mark);
+		blacklist_list_all_srcdst(fd_mark);
+		close(fd_mark);
 
 		fd_port_blacklist = open_bpf_map(file_port_blacklist);
 		for (i = 0; i < DDOS_FILTER_MAX; i++)
