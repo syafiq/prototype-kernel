@@ -283,9 +283,10 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	u64 one = 1;
 	u64 zero = 0;
 	u64 t_now;
+	u64 calc_temp;
 	u64 TT1 = 10;
-	//u64 TT2 = 20;
-	//u64 TF1 = 30;
+	u64 TT2 = 20;
+	u64 TF1 = 30;
 	id_addr ida;
 
 	u32 ip_src; /* type need to match map */
@@ -327,12 +328,14 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	__sync_fetch_and_add(&dc_get, &one);
 	ts2_val = bpf_map_update_elem(&ts2, &ida, &t_now, BPF_EXIST);
 
-	//if ((*ts2_get-*ts1_get) > TT2) { // TT2
-	////	if ( > 40) { // TF1
-	//	return XDP_DROP;
-	//		// Send overload warning
-	////	}
-	//}
+	if ((&ts2_get-&ts1_get) > TT2) { // TT2
+		//if ((u64) (&c_get/(&ts2_get-&ts1_get)) > TF1) { // TF1
+		calc_temp = (u64) &c_get/(&ts2_get-&ts1_get);
+		if (calc_temp > TF1) { // TF1
+			return XDP_DROP;
+			// Send overload warning
+		}
+	}
 
 	bpf_debug("Valid IPv4 packet: raw saddr:0x%x\n", ip_src);
 
