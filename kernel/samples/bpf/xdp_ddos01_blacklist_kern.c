@@ -263,6 +263,8 @@ u32 parse_port(struct xdp_md *ctx, u8 proto, void *hdr)
 	return XDP_PASS;
 }
 
+
+SEC("parsing ip4")
 static __always_inline
 u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 {
@@ -283,10 +285,10 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	u64 one = 1;
 	u64 zero = 0;
 	u64 t_now;
-	u64 calc_temp;
+	u64 calc_temp = 0;
 	u64 TT1 = 10;
-	u64 TT2 = 20;
-	u64 TF1 = 30;
+	u64 TT2 = 100;
+	u64 TF1 = 300;
 	id_addr ida;
 
 	u32 ip_src; /* type need to match map */
@@ -329,8 +331,8 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	ts2_val = bpf_map_update_elem(&ts2, &ida, &t_now, BPF_EXIST);
 
 	if ((&ts2_get-&ts1_get) > TT2) { // TT2
-		//if ((u64) (&c_get/(&ts2_get-&ts1_get)) > TF1) { // TF1
 		calc_temp = (u64) &c_get/(&ts2_get-&ts1_get);
+		calc_temp &= 0xF; // FIXME : not sure of it solves the issue
 		if (calc_temp > TF1) { // TF1
 			return XDP_DROP;
 			// Send overload warning
