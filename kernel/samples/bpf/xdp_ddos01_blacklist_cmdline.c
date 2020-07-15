@@ -430,41 +430,55 @@ int main(int argc, char **argv)
 	}
 
 	if (do_list) {
-		printf("{");
+		//printf("{");
 		int fd_port_blacklist_count_array[DDOS_FILTER_MAX];
 		int i;
 
+		printf("\nBPF map blocked IP\n======");
 		fd_blacklist = open_bpf_map(file_blacklist);
 		blacklist_list_all_ipv4(fd_blacklist);
 		close(fd_blacklist);
+		printf("\n======\n");
 
-		/*FIXME we should separate this */
-		fd_ts1 = open_bpf_map(file_ts1);
-		blacklist_list_all_srcdst(fd_ts1);
-		close(fd_ts1);
-
-		fd_ts2 = open_bpf_map(file_ts2);
-		blacklist_list_all_srcdst(fd_ts2);
-		close(fd_ts2);
-
-		fd_c = open_bpf_map(file_c);
-		blacklist_list_all_srcdst(fd_c);
-		close(fd_c);
-
-		fd_dc = open_bpf_map(file_dc);
-		blacklist_list_all_srcdst(fd_dc);
-		close(fd_dc);
-
-		fd_mark = open_bpf_map(file_mark);
-		blacklist_list_all_srcdst(fd_mark);
-		close(fd_mark);
-
+		printf("\nBPF map blocked port\n======");
 		fd_port_blacklist = open_bpf_map(file_port_blacklist);
 		for (i = 0; i < DDOS_FILTER_MAX; i++)
 			fd_port_blacklist_count_array[i] = open_bpf_map(file_port_blacklist_count[i]);
 		blacklist_list_all_ports(fd_port_blacklist, fd_port_blacklist_count_array);
 		close(fd_port_blacklist);
-		printf("\n}\n");
+		printf("\n======\n");
+
+		/*FIXME we should separate this */
+		printf("\nBPF map ts1\n======");
+		fd_ts1 = open_bpf_map(file_ts1);
+		blacklist_list_all_srcdst(fd_ts1);
+		close(fd_ts1);
+		printf("\n======\n");
+
+		printf("\nBPF map ts2\n======");
+		fd_ts2 = open_bpf_map(file_ts2);
+		blacklist_list_all_srcdst(fd_ts2);
+		close(fd_ts2);
+		printf("\n======\n");
+
+		printf("\nBPF map counter\n======");
+		fd_c = open_bpf_map(file_c);
+		blacklist_list_all_srcdst(fd_c);
+		close(fd_c);
+		printf("\n======\n");
+
+		printf("\nBPF map diffcounter\n======");
+		fd_dc = open_bpf_map(file_dc);
+		blacklist_list_all_srcdst(fd_dc);
+		close(fd_dc);
+		printf("\n======\n");
+
+		printf("\nBPF map mark\n======");
+		fd_mark = open_bpf_map(file_mark);
+		blacklist_list_all_srcdst(fd_mark);
+		close(fd_mark);
+		printf("\n======\n");
+
 		for (i = 0; i < DDOS_FILTER_MAX; i++)
 			close(fd_port_blacklist_count_array[i]);
 	}

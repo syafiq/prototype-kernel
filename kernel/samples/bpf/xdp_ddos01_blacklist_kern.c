@@ -286,9 +286,9 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 	u64 zero = 0;
 	u64 t_now;
 	u64 calc_temp = 0;
-	u64 TT1 = 10;
-	u64 TT2 = 100;
-	u64 TF1 = 300;
+	u64 TT1 = 400;
+	u64 TT2 = 500;
+	u64 TF1 = 600;
 	id_addr ida;
 
 	u32 ip_src; /* type need to match map */
@@ -338,6 +338,7 @@ u32 parse_ipv4(struct xdp_md *ctx, u64 l3_offset)
 			// Send overload warning
 		}
 	}
+
 
 	bpf_debug("Valid IPv4 packet: raw saddr:0x%x\n", ip_src);
 
